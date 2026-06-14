@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  owner       String
+  tier        String   // "TIER_1", "TIER_2", "TIER_3"
+  status      String   // "HEALTHY", "DEGRADED", "FAILED"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dependencies Service[] @relation("ServiceDependencies")
+  dependents   Service[] @relation("ServiceDependencies")
+}
+
+model SimulationHistory {
+  id                   String   @id @default(uuid())
+  failedServiceIds     String   // JSON string of array of IDs
+  impactedServiceIds   String   // JSON string of array of IDs
+  severityScore        Float
+  systemImpactedPercent Float
+  notes                String?
+  createdAt            DateTime @default(now())
+}

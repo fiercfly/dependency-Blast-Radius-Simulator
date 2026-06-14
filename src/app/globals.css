@@ -1,0 +1,175 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --font-title: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* HSL Color Palette - Obsidian Theme */
+  --bg-base: 224 25% 6%;
+  --bg-surface: 224 25% 10%;
+  --bg-card: 224 25% 12%;
+  --bg-card-hover: 224 25% 16%;
+  
+  --border-color: 224 20% 18%;
+  --border-glow: 217 90% 60%;
+
+  /* Status Colors */
+  --color-healthy: 142 70% 45%;
+  --color-healthy-glow: 142 70% 45% / 0.15;
+  
+  --color-degraded: 37 90% 50%;
+  --color-degraded-glow: 37 90% 50% / 0.15;
+  
+  --color-failed: 346 80% 50%;
+  --color-failed-glow: 346 80% 50% / 0.2;
+
+  --color-primary: 217 90% 56%;
+  --color-primary-glow: 217 90% 56% / 0.2;
+
+  --text-primary: 220 20% 96%;
+  --text-secondary: 220 15% 70%;
+  --text-muted: 220 10% 50%;
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.8);
+}
+
+/* Light Mode Theme Overrides */
+[data-theme="light"] {
+  --bg-base: 220 20% 97%;
+  --bg-surface: 220 20% 93%;
+  --bg-card: 0 0% 100%;
+  --bg-card-hover: 220 20% 90%;
+  
+  --border-color: 220 15% 85%;
+  --border-glow: 217 90% 50%;
+
+  --text-primary: 220 20% 12%;
+  --text-secondary: 220 15% 35%;
+  --text-muted: 220 10% 50%;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: hsl(var(--bg-base));
+  color: hsl(var(--text-primary));
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--bg-base));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border-color));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--text-muted));
+}
+
+/* Glow Effect Animations */
+@keyframes pulse-glow-failed {
+  0%, 100% {
+    box-shadow: 0 0 8px hsl(var(--color-failed) / 0.4), inset 0 0 4px hsl(var(--color-failed) / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(var(--color-failed) / 0.7), inset 0 0 8px hsl(var(--color-failed) / 0.4);
+  }
+}
+
+@keyframes pulse-glow-degraded {
+  0%, 100% {
+    box-shadow: 0 0 8px hsl(var(--color-degraded) / 0.3), inset 0 0 4px hsl(var(--color-degraded) / 0.1);
+  }
+  50% {
+    box-shadow: 0 0 16px hsl(var(--color-degraded) / 0.5), inset 0 0 8px hsl(var(--color-degraded) / 0.3);
+  }
+}
+
+/* React Flow Visual Overrides */
+.react-flow__renderer {
+  background-color: hsl(var(--bg-base)) !important;
+}
+
+.react-flow__edge-path {
+  stroke: hsl(var(--text-muted)) !important;
+  stroke-width: 1.5px !important;
+  transition: stroke var(--transition-normal), stroke-width var(--transition-normal);
+}
+
+.react-flow__edge.active .react-flow__edge-path {
+  stroke: hsl(var(--color-primary)) !important;
+  stroke-width: 2.5px !important;
+}
+
+.react-flow__edge.failed .react-flow__edge-path {
+  stroke: hsl(var(--color-failed)) !important;
+  stroke-width: 2.5px !important;
+}
+
+.react-flow__edge.degraded .react-flow__edge-path {
+  stroke: hsl(var(--color-degraded)) !important;
+  stroke-width: 2px !important;
+}
+
+.react-flow__controls {
+  background-color: hsl(var(--bg-surface)) !important;
+  border: 1px solid hsl(var(--border-color)) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  background-color: transparent !important;
+  border-bottom: 1px solid hsl(var(--border-color)) !important;
+  fill: hsl(var(--text-primary)) !important;
+}
+
+.react-flow__controls-button:hover {
+  background-color: hsl(var(--bg-card-hover)) !important;
+}
+
+.react-flow__attribution {
+  display: none !important;
+}
