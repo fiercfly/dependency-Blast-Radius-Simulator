@@ -14,8 +14,8 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import styles from "./page.module.css";
-import { CustomServiceNode, ServiceNodeData } from "@/components/ServiceNode";
-import { simulateFailures, detectCycle, ServiceNode } from "@/lib/simulator";
+import { CustomServiceNode } from "@/components/ServiceNode";
+import { simulateFailures, ServiceNode } from "@/lib/simulator";
 import {
   Plus,
   Network,
@@ -25,13 +25,10 @@ import {
   AlertTriangle,
   RefreshCw,
   Search,
-  Filter,
   User,
-  Shield,
   Layers,
   ArrowRight,
   Save,
-  CheckCircle,
   X,
   Play,
   RotateCcw,
@@ -68,17 +65,14 @@ interface DBSimulation {
 }
 
 export default function Dashboard() {
-  
   const [services, setServices] = useState<DBService[]>([]);
   const [history, setHistory] = useState<DBSimulation[]>([]);
   const [loading, setLoading] = useState(true);
 
-  
   const [searchQuery, setSearchQuery] = useState("");
   const [tierFilter, setTierFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [isAddServiceOpen, setIsAddServiceOpen] = useState(false);
   const [isAddDependencyOpen, setIsAddDependencyOpen] = useState(false);
@@ -86,7 +80,6 @@ export default function Dashboard() {
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [cycleDetails, setCycleDetails] = useState<string[] | null>(null);
 
-  
   const [newService, setNewService] = useState({
     name: "",
     description: "",
@@ -95,25 +88,21 @@ export default function Dashboard() {
   });
   const [newDependencyId, setNewDependencyId] = useState("");
 
-  
   const [simulationActive, setSimulationActive] = useState(false);
   const [failedServiceIds, setFailedServiceIds] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  
   const [activeTab, setActiveTab] = useState<"services" | "history">("services");
+  const [mobilePanelTab, setMobilePanelTab] = useState<"registry" | "canvas" | "simulation">("canvas");
 
-  
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const savedTheme = localStorage.getItem("theme") as "dark" | "light";
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
+    if (savedTheme) setTheme(savedTheme);
   }, []);
 
   useEffect(() => {
@@ -123,48 +112,29 @@ export default function Dashboard() {
     }
   }, [theme, mounted]);
 
-  const toggleTheme = () => {
-    setTheme((t) => (t === "dark" ? "light" : "dark"));
-  };
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
-  
-  const [defaultViewport, setDefaultViewport] = useState(() => {
+  const [defaultViewport] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("rf-viewport");
       if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch (e) {}
+        try { return JSON.parse(saved); } catch { /* ignore */ }
       }
     }
     return { x: 0, y: 0, zoom: 1 };
   });
 
-  const hasSavedViewport = useMemo(() => {
-    if (typeof window !== "undefined") {
-      return !!localStorage.getItem("rf-viewport");
-    }
-    return false;
+  const onMoveEnd = useCallback((_event: unknown, viewportData: { x: number; y: number; zoom: number }) => {
+    if (viewportData) localStorage.setItem("rf-viewport", JSON.stringify(viewportData));
   }, []);
 
-  const onMoveEnd = useCallback((event: any, viewportData: any) => {
-    if (viewportData) {
-      localStorage.setItem("rf-viewport", JSON.stringify(viewportData));
-    }
-  }, []);
-
-  
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
-  
   const fetchServices = async () => {
     try {
       const res = await fetch("/api/services");
-      if (res.ok) {
-        const data = await res.json();
-        setServices(data);
-      }
+      if (res.ok) setServices(await res.json());
     } catch (err) {
       console.error("Error fetching services:", err);
     }
@@ -173,10 +143,7 @@ export default function Dashboard() {
   const fetchHistory = async () => {
     try {
       const res = await fetch("/api/simulations");
-      if (res.ok) {
-        const data = await res.json();
-        setHistory(data);
-      }
+      if (res.ok) setHistory(await res.json());
     } catch (err) {
       console.error("Error fetching history:", err);
     }
@@ -191,7 +158,6 @@ export default function Dashboard() {
     initData();
   }, []);
 
-  
   const servicesMap = useMemo(() => {
     const map: Record<string, ServiceNode> = {};
     services.forEach((s) => {
@@ -200,8 +166,8 @@ export default function Dashboard() {
         name: s.name,
         tier: s.tier,
         status: s.status,
-        dependencies: s.dependencies.map((d) => d.id),
-        dependents: s.dependents.map((d) => d.id),
+        dependencies: s.dependencies.map((d: { id: string }) => d.id),
+        dependents: s.dependents.map((d: { id: string }) => d.id),
       };
     });
     return map;
@@ -549,25 +515,16 @@ export default function Dashboard() {
     let healthy = 0;
     let degraded = 0;
     let failed = 0;
-
     services.forEach((s) => {
       const status = getServiceStatus(s.id, s.status);
       if (status === "FAILED") failed++;
       else if (status === "DEGRADED") degraded++;
       else healthy++;
     });
-
-    
-    
-    const tier1Count = services.filter((s) => s.tier === "TIER_1").length;
-    const circularDeps = false; 
-
-    return { total, healthy, degraded, failed, tier1Count };
+    return { total, healthy, degraded, failed };
   }, [services, getServiceStatus]);
 
-  
   const globalCircularStatus = useMemo(() => {
-    
     const visited = new Set<string>();
     const recStack = new Set<string>();
 
@@ -599,7 +556,6 @@ export default function Dashboard() {
 
   return (
     <div className={styles.container}>
-      {}
       <header className={styles.header}>
         <div className={styles.headerTitleGroup}>
           <Network className={styles.headerIcon} size={28} />
@@ -609,7 +565,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {}
         <button
           className={`${styles.btn} ${styles.btnSecondary}`}
           onClick={toggleTheme}
@@ -639,7 +594,6 @@ export default function Dashboard() {
           )}
         </button>
 
-        {}
         <div className={styles.statsBar}>
           <div className={styles.statItem}>
             <span className={`${styles.statVal} ${styles.info}`}>{systemStats.total}</span>
@@ -660,10 +614,8 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {}
       <div className={styles.workspace}>
-        {}
-        <aside className={styles.sidebar}>
+        <aside className={`${styles.sidebar} ${mobilePanelTab === "registry" ? styles.mobileActive : ""}`}>
           <div className={styles.tabHeader}>
             <button
               className={`${styles.tabBtn} ${activeTab === "services" ? styles.active : ""}`}
@@ -680,10 +632,8 @@ export default function Dashboard() {
           </div>
 
           <div className={styles.tabContent}>
-            {}
             {activeTab === "services" && (
               <>
-                {}
                 <div className={styles.searchBarGroup}>
                   <div style={{ position: "relative" }}>
                     <Search
@@ -731,7 +681,6 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {}
                 {globalCircularStatus && (
                   <div className={styles.vulnerabilityBadge}>
                     <AlertTriangle size={18} />
@@ -739,7 +688,6 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                {}
                 <button
                   className={styles.btn}
                   onClick={() => {
@@ -750,7 +698,6 @@ export default function Dashboard() {
                   <Plus size={16} /> Register New Service
                 </button>
 
-                {}
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                   <h3 className={styles.sectionTitle}>
                     <span>Registered Services ({filteredServices.length})</span>
@@ -814,7 +761,6 @@ export default function Dashboard() {
               </>
             )}
 
-            {}
             {activeTab === "history" && (
               <div className={styles.historyList}>
                 <h3 className={styles.sectionTitle}>Simulation Logs</h3>
@@ -868,9 +814,7 @@ export default function Dashboard() {
           </div>
         </aside>
 
-        {}
-        <main className={styles.canvasContainer}>
-          {}
+        <main className={`${styles.canvasContainer} ${mobilePanelTab === "canvas" ? styles.mobileActive : ""}`}>
           <div className={styles.canvasToolbar}>
             <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={fetchServices}>
               <RefreshCw size={14} /> Refetch
@@ -889,14 +833,13 @@ export default function Dashboard() {
             }}
             defaultViewport={defaultViewport}
             onMoveEnd={onMoveEnd}
-            fitView={!hasSavedViewport}
+            fitView={typeof window !== "undefined" && !localStorage.getItem("rf-viewport")}
             style={{ width: "100%", height: "100%" }}
           >
             <Background color="#334155" gap={16} size={1} />
             <Controls />
           </ReactFlow>
 
-          {}
           <div className={styles.canvasLegend}>
             <div className={styles.legendItem}>
               <div className={styles.legendDot} style={{ backgroundColor: "#10b981" }} />
@@ -917,9 +860,7 @@ export default function Dashboard() {
           </div>
         </main>
 
-        {}
-        <section className={styles.rightPanel}>
-          {}
+        <section className={`${styles.rightPanel} ${mobilePanelTab === "simulation" ? styles.mobileActive : ""}`}>
           {selectedService ? (
             <div className={styles.card} style={{ borderColor: "hsl(var(--border-color))", cursor: "default" }}>
               <div className={styles.cardHeader}>
@@ -943,7 +884,6 @@ export default function Dashboard() {
 
               <hr style={{ borderColor: "hsl(var(--border-color))", margin: "0.5rem 0" }} />
 
-              {}
               {!simulationActive && (
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Status Management</label>
@@ -959,7 +899,6 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {}
               <div className={styles.formGroup} style={{ marginTop: "0.5rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <label className={styles.formLabel}>Dependencies (Depends on)</label>
@@ -996,7 +935,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {}
               <div className={styles.formGroup} style={{ marginTop: "0.5rem" }}>
                 <label className={styles.formLabel}>Dependents (Who depends on this)</label>
                 <div className={styles.serviceRelationsList}>
@@ -1028,13 +966,11 @@ export default function Dashboard() {
             </div>
           )}
 
-          {}
           <div className={styles.rightSectionTitle}>
             <Activity size={18} />
             <span>Failure Simulator</span>
           </div>
 
-          {}
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>Select Service(s) to Fail</label>
             <div className={styles.multiselect}>
@@ -1051,7 +987,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {}
           <div className={styles.btnGroup}>
             {!simulationActive ? (
               <button className={styles.btn} style={{ flex: 1 }} onClick={startSimulation}>
@@ -1068,7 +1003,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {}
           {simulationActive && (
             <>
               <div className={styles.severityWidget}>
@@ -1098,7 +1032,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {}
               <div className={styles.card} style={{ cursor: "default" }}>
                 <div className={styles.formGroup} style={{ gap: "6px", fontSize: "0.8rem" }}>
                   <div>
@@ -1113,7 +1046,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {}
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Cascade Impact Paths</label>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: "200px", overflowY: "auto" }}>
@@ -1145,7 +1077,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {}
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Simulation Notes</label>
                 <textarea
@@ -1170,7 +1101,6 @@ export default function Dashboard() {
         </section>
       </div>
 
-      {}
       {errorBanner && (
         <div style={{ position: "fixed", top: "1.5rem", left: "50%", transform: "translateX(-50%)", zIndex: 1000, width: "90%", maxWidth: "480px" }}>
           <div className={styles.errorBanner} style={{ margin: 0, padding: "1rem", position: "relative" }}>
@@ -1201,7 +1131,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {}
       {isAddServiceOpen && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
@@ -1273,7 +1202,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {}
       {isAddDependencyOpen && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
@@ -1320,7 +1248,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {}
       {serviceToDelete && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
@@ -1360,6 +1287,34 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Mobile bottom nav bar */}
+      <nav className={styles.mobileNav}>
+        <button
+          className={`${styles.mobileNavBtn} ${mobilePanelTab === "registry" ? styles.mobileNavActive : ""}`}
+          onClick={() => setMobilePanelTab("registry")}
+          type="button"
+        >
+          <Layers size={20} />
+          Registry
+        </button>
+        <button
+          className={`${styles.mobileNavBtn} ${mobilePanelTab === "canvas" ? styles.mobileNavActive : ""}`}
+          onClick={() => setMobilePanelTab("canvas")}
+          type="button"
+        >
+          <Network size={20} />
+          Canvas
+        </button>
+        <button
+          className={`${styles.mobileNavBtn} ${mobilePanelTab === "simulation" ? styles.mobileNavActive : ""}`}
+          onClick={() => setMobilePanelTab("simulation")}
+          type="button"
+        >
+          <Activity size={20} />
+          Simulate
+        </button>
+      </nav>
     </div>
   );
 }

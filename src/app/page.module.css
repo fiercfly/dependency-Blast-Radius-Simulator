@@ -90,6 +90,171 @@
   }
 }
 
+/* ─── Mobile Layout (≤768px) ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .container {
+    height: 100dvh; /* dynamic viewport for mobile browsers with chrome */
+  }
+
+  .header {
+    padding: 0.65rem 0.85rem;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  .headerTitleGroup {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .headerIcon {
+    flex-shrink: 0;
+  }
+
+  .headerTitle {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .headerSubtitle {
+    display: none;
+  }
+
+  /* Shrink stats bar on mobile */
+  .statsBar {
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .statItem {
+    min-width: 44px;
+    padding: 0.25rem 0.4rem;
+  }
+
+  .statVal {
+    font-size: 0.9rem;
+  }
+
+  .statLabel {
+    font-size: 0.55rem;
+  }
+
+  /* Switch workspace to single-column full height */
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 56px - 56px); /* header + bottom nav */
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Each panel takes full space but hidden unless active */
+  .sidebar,
+  .rightPanel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    border: none;
+    border-radius: 0;
+    display: none;
+    z-index: 2;
+  }
+
+  .sidebar.mobileActive,
+  .rightPanel.mobileActive {
+    display: flex;
+  }
+
+  /* Canvas always present as base layer */
+  .canvasContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    display: none;
+  }
+
+  .canvasContainer.mobileActive {
+    display: block;
+  }
+
+  /* Bottom mobile navigation bar */
+  .mobileNav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background-color: hsl(var(--bg-surface));
+    border-top: 1px solid hsl(var(--border-color));
+    z-index: 20;
+  }
+
+  .mobileNavBtn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: hsl(var(--text-muted));
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .mobileNavBtn.mobileNavActive {
+    color: hsl(var(--color-primary));
+    background-color: hsl(var(--color-primary) / 0.08);
+  }
+
+  .mobileNavBtn:active {
+    background-color: hsl(var(--bg-card));
+  }
+
+  /* Legend hidden on mobile canvas to save space */
+  .canvasLegend {
+    display: none;
+  }
+
+  /* Canvas toolbar repositioned */
+  .canvasToolbar {
+    top: 0.5rem;
+    left: 0.5rem;
+  }
+
+  /* Modals full-width on mobile */
+  .modalContent {
+    width: 95%;
+    padding: 1rem;
+  }
+
+  /* Error banner needs padding for mobile safe area */
+  .errorBanner {
+    margin: 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Hide mobile nav on desktop */
+.mobileNav {
+  display: none;
+}
+
+
 /* Sidebar Styling */
 .sidebar {
   background-color: hsl(var(--bg-surface));
